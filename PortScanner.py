@@ -48,7 +48,7 @@ def send_arp_request(address):
     print("[*] Ip: " + answered_list[1].psrc)
     print("    Mac: " + answered_list[1].hwsrc)
 
-def network_scan2(network_ip, start_index, end_index):
+def network_scan2(start_index, end_index):
     ip_list = list(network.hosts())
     ip_list = ip_list[start_index:end_index]
 
@@ -61,9 +61,10 @@ def network_scan2(network_ip, start_index, end_index):
             print("[*] " + address)
 
 
-def network_scan():
-
-    ip_list = network.hosts()
+def network_scan(start_index, end_index):
+    
+    ip_list = list(network.hosts())
+    ip_list = ip_list[start_index:end_index]
 
     for address in ip_list:
         arp_request = scapy.ARP(pdst=str(address))
@@ -250,12 +251,12 @@ while command != "exit":
             combinations = 2 ** (32 - subnet_mask) - 1
             temp = combinations // 6
             print("[*] I seguenti host sono online:")
-            thread = threading.Thread(target=network_scan2, args=(host_ip + "/" +str(subnet_mask), 0, temp,))
-            thread_one = threading.Thread(target=network_scan2, args=(host_ip + "/" +str(subnet_mask), temp+1, temp+temp,))
-            thread_two = threading.Thread(target=network_scan2, args=(host_ip + "/" +str(subnet_mask), temp+temp+1, temp*3))
-            thread_three = threading.Thread(target=network_scan2, args=(host_ip + "/" +str(subnet_mask), temp*3+1, temp*4,))
-            thread_four = threading.Thread(target=network_scan2, args=(host_ip + "/" + str(subnet_mask), temp*4+1, temp*5,))
-            thread_five = threading.Thread(target=network_scan2, args=(host_ip + "/" + str(subnet_mask), temp*5+1, combinations,))
+            thread = threading.Thread(target=network_scan2, args=(0, temp,))
+            thread_one = threading.Thread(target=network_scan2, args=(temp+1, temp+temp,))
+            thread_two = threading.Thread(target=network_scan2, args=(temp+temp+1, temp*3))
+            thread_three = threading.Thread(target=network_scan2, args=(temp*3+1, temp*4,))
+            thread_four = threading.Thread(target=network_scan2, args=(temp*4+1, temp*5,))
+            thread_five = threading.Thread(target=network_scan2, args=(temp*5+1, combinations,))
             thread.start()
             thread_one.start()
             thread_two.start()
@@ -283,13 +284,43 @@ while command != "exit":
         try:
             network = ipaddress.ip_network(host_ip + "/" + str(subnet_mask))
             try:
-                network_scan()
+                combinations = 2 ** (32 - subnet_mask) - 1
+           	temp = combinations // 6
+            	print("[*] I seguenti host sono online:")
+            	thread = threading.Thread(target=network_scan, args=(0, temp,))
+            	thread_one = threading.Thread(target=network_scan, args=(temp+1, temp+temp,))
+            	thread_two = threading.Thread(target=network_scan, args=(temp+temp+1, temp*3))
+            	thread_three = threading.Thread(target=network_scan, args=(temp*3+1, temp*4,))
+            	thread_four = threading.Thread(target=network_scan, args=(temp*4+1, temp*5,))
+            	thread_five = threading.Thread(target=network_scan, args=(temp*5+1, combinations,))
+		thread.start()
+            	thread_one.start()
+            	thread_two.start()
+            	thread_three.start()
+            	thread_four.start()
+            	thread_five.start()
+            	thread.join()
+            	thread_one.join()
+            	thread_two.join()
+            	thread_three.join()
+            	thread_four.join()
+            	thread_five.join()
+            # l'esecuzione si ferma finchè tutti i thread non si fermano
             except:
                 print("[ERRORE] Assicurati di avere i permessi di amministratore\nin caso non è possibile averli utilizzare il comando network-scan2")
         except:
             print("[ERRORE] Assicurarsi di aver fornito i dati richiesti in modo corretto")
-
-
+	# In caso di errore tutti i threads si stopperanno 
+	try:
+		thread.stop()
+            	thread_one.stop()
+            	thread_two.stop()
+           	thread_three.stop()
+            	thread_four.stop()
+            	thread_five.stop()
+	except:
+		pass
+	
     flag = True
 
     port_min = 0
